@@ -1,6 +1,3 @@
--- Создание БД
-CREATE DATABASE vacancies;
-
 -- Таблица "Регионы и города федерального значения (Москва, Санкт-Петербург)"
 CREATE TABLE IF NOT EXISTS regions
 (
@@ -46,12 +43,6 @@ CREATE TABLE IF NOT EXISTS currency
     CONSTRAINT pk_currency_currency_id PRIMARY KEY (currency_id)
 );
 
--- Заполнение данными таблицы "Валюта"
-INSERT INTO currency(currency_name) VALUES
-	('RUR'),
-	('EUR'),
-	('USD');
-
 -- Таблица "График работы"
 CREATE TABLE IF NOT EXISTS schedule
 (
@@ -60,13 +51,6 @@ CREATE TABLE IF NOT EXISTS schedule
 
     CONSTRAINT pk_schedule_schedule_id PRIMARY KEY (schedule_id)
 );
-
--- Заполнение данными таблицы "График работы"
-INSERT INTO schedule(schedule_name) VALUES
-    ('Вахтовый метод'),
-    ('Гибкий график'),
-    ('Полный день'),
-    ('Сменный график');
 
 -- Таблица "Занятость"
 CREATE TABLE IF NOT EXISTS employment
@@ -77,12 +61,6 @@ CREATE TABLE IF NOT EXISTS employment
     CONSTRAINT pk_employment_employment_id PRIMARY KEY (employment_id)
 );
 
--- Заполнение данными таблицы "Занятость"
-INSERT INTO employment(employment_name) VALUES
-    ('Полная занятость'),
-    ('Проектная работа'),
-    ('Частичная занятость');
-
 -- Таблица "Опыт работы"
 CREATE TABLE IF NOT EXISTS experience
 (
@@ -91,14 +69,6 @@ CREATE TABLE IF NOT EXISTS experience
 
     CONSTRAINT pk_experience_experience_id PRIMARY KEY (experience_id)
 );
-
--- Заполнение данными таблицы "Опыт работы"
-INSERT INTO experience(experience_name) VALUES
-    ('Нет опыта'),
-    ('От 1 года до 3 лет'),
-    ('От 3 до 6 лет'),
-    ('Более 6 лет');
-
 
 -- Таблица "Отобранные вакансии"
 CREATE TABLE IF NOT EXISTS vacancies

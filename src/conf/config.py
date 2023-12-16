@@ -1,7 +1,9 @@
 from configparser import ConfigParser
 
+from src.conf.constants import PATH_INI
 
-def config(filename: str = "database.ini", section: str = "postgresql") -> dict:
+
+def config(filename: str = PATH_INI, section: str = "postgresql") -> dict:
     """
     Читает параметры в файле database.ini и возвращает их как словарь.
     :param filename: Имя файла, хранящего конфигурацию доступа к БД, str.
