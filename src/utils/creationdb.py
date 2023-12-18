@@ -1,6 +1,7 @@
 import psycopg2
 
 from src.conf.constants import DB_NAME
+from loguru import logger
 
 
 class CreationDB:
@@ -9,7 +10,7 @@ class CreationDB:
         self.__db_name = db_name
         self.__params = params
 
-    def create_database(self, path_dbcreate: str) -> str:
+    def create_database(self, path_dbcreate: str) -> None:
         """
         Создание базы данных из скрипта .sql
         """
@@ -17,29 +18,32 @@ class CreationDB:
             conn = psycopg2.connect(dbname='postgres', **self.__params)
             conn.autocommit = True
             cur = conn.cursor()
-            cur.execute(f'DROP DATABASE IF EXISTS {self.__db_name} WITH (FORCE)')
             cur.execute(f'CREATE DATABASE {self.__db_name}')
-            with conn:
-                with cur as cursor:
-                    cursor.execute(self.sql_read(path_dbcreate))
-            return f"БД {self.__db_name} успешно создана"
+            # Настраиваем БД из файла настроек
+            try:
+                with conn:
+                    with cur as cursor:
+                        cursor.execute(self.sql_read(path_dbcreate))
+                logger.info(f"БД {self.__db_name} успешно создана")
+            finally:
+                conn.close()
         except (Exception, psycopg2.DatabaseError) as error:
-            print(error)
+            logger.error(error)
             exit(1)
 
-    def create_tables(self, path_dbcreatetables: str) -> str:
+    def create_tables(self, path_dbcreatetables: str) -> None:
         """
         Создание таблиц БД из скрипта .sql
         """
         self.sql_script(path_dbcreatetables)
-        return f"Таблицы БД {self.__db_name} успешно созданы"
+        logger.info(f"Таблицы БД {self.__db_name} успешно созданы")
 
-    def insert_tables(self, path_dbinserttables: str) -> str:
+    def insert_tables(self, path_dbinserttables: str) -> None:
         """
         Заполнение таблиц БД из скрипта .sql
         """
         self.sql_script(path_dbinserttables)
-        return f"Таблицы БД {self.__db_name} успешно заполнены"
+        logger.info(f"Справочные таблицы БД {self.__db_name} успешно заполнены")
 
     def sql_script(self, path: str) -> None:
         """
@@ -47,11 +51,14 @@ class CreationDB:
         """
         try:
             conn = psycopg2.connect(dbname=self.__db_name, **self.__params)
-            with conn:
-                with conn.cursor() as cur:
-                    cur.execute(self.sql_read(path))
+            try:
+                with conn:
+                    with conn.cursor() as cur:
+                        cur.execute(self.sql_read(path))
+            finally:
+                conn.close()
         except (Exception, psycopg2.DatabaseError) as error:
-            print(error)
+            logger.error(error)
             exit(1)
 
     @staticmethod
@@ -61,11 +68,15 @@ class CreationDB:
         :param path: Путь к файлу, str.
         :return: sql-скрипт, str.
         """
-        with open(path, 'r', encoding='utf-8') as sql:
-            return sql.read()
+        try:
+            with open(path, 'r', encoding='utf-8') as sql:
+                return sql.read()
+        except FileNotFoundError:
+            raise FileNotFoundError(f'Отсутствует файл {path}.')
 
     def __str__(self) -> str:
         return f'Создание БД {self.__db_name}, таблиц, заполнение справочных таблиц данными '
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.__db_name}, host: {self.__params['host']}, port: {self.__params['port']})"
+        return (f"{self.__class__.__name__}({self.__db_name}, "
+                f"host: {self.__params['host']}, port: {self.__params['port']})")
