@@ -1,9 +1,8 @@
 import json
-from typing import Any
 
 import psycopg2
 import requests
-from src.conf.constants import URL_AREAS_HH, ID_RUSSIA_HH, DB_NAME
+from src.conf.constants import ID_RUSSIA_HH
 from loguru import logger
 
 
@@ -29,42 +28,27 @@ class AreasHH:
             # Посылаем запрос к API, преобразуем его в словарь, получая список.
             data_areas = json.loads(requests.get(url=self.__url).text)['areas']
             logger.info(f'Данные о регионах/населённых пунктах с {self.__url} получены успешно')
-            # Преобразование данных и заполнение таблиц
-            self.db_insert_tables_regions(data_areas)  # регионы
-            self.db_insert_tables_cities(data_areas)  # населённые пункты
+            # Преобразование данных и заполнение таблицы areas
+            self.db_insert_tables_areas(data_areas)
         except Exception as e:
-            logger.error(f'Ошибка при получении данных с {self.__url}. {e}')
+            logger.error(f'Ошибка при получении данных с {self.__url} ({self.__class__.__name__}). {e}')
 
-    def db_insert_tables_regions(self, data_areas: list) -> None:
+    def db_insert_tables_areas(self, data_areas: list) -> None:
         """
-        Заполнение таблицы с данными о регионах.
-        :param data_areas: Список данных с регионами/населёнными пунктами.
+        Заполнение таблицы areas данными о регионах/городах.
+        :param data_areas: Список данных с регионами/городами.
         """
         # формируем список кортежей данных о регионах и городах федерального значения
-        regions = []
+        areas = [(113, 'Россия')]
         for dict_region in data_areas:
             if int(dict_region['parent_id']) == self.__id:
-                regions.append((int(dict_region['id']), dict_region['name'],))
-
-        # заполняем таблицу БД regions
-        self.insert_table('regions', 'region_id, region_name', regions)
-
-    def db_insert_tables_cities(self, data_areas: list) -> None:
-        """
-        Заполнение таблицы с данными о населённых пунктах.
-        :param data_areas: Список данных с регионами/населёнными пунктами.
-        """
-        # формируем список кортежей данных о населённых пунктах
-        cities = []
-        for dict_region in data_areas:
-            if int(dict_region['parent_id']) == self.__id:
-                id_region = int(dict_region['id'])
+                areas.append((int(dict_region['id']), dict_region['name'],))
                 if len(dict_region['areas']) != 0:
                     for dict_city in dict_region['areas']:
-                        cities.append((int(dict_city['id']), id_region, dict_city['name'],))
+                        areas.append((int(dict_city['id']), dict_city['name'],))
 
-        # Заполняем таблицу БД cities
-        self.insert_table('cities', 'city_id, region_id, city_name', cities)
+        # заполняем таблицу БД areas
+        self.insert_table('areas', 'area_id, area_name', areas)
 
     def insert_table(self, table: str, columns: str, list_table: list[tuple]) -> None:
         """
@@ -82,13 +66,14 @@ class AreasHH:
                     cur.executemany(database_request, list_table)
             logger.info(f'Таблица {table} БД {self.__db_name} заполнена данными успешно')
         except (Exception, psycopg2.DatabaseError) as error:
-            logger.error(error)
+            logger.error(f'Заполнение таблицы БД данными ({self.__class__.__name__}): {error}')
             exit(1)
         finally:
             conn.close()
 
     def __str__(self) -> str:
-        return f'Заполнение справочника (таблицы БД) регионов/городов России с сервиса hh.ru по API {self.__url}'
+        return (f'Заполнение справочника (таблицы БД) '
+                f'регионов/городов России данными, полученными с hh.ru по API {self.__url}')
 
     def __repr__(self) -> str:
         return (f"{self.__class__.__name__}(url: {self.__url}, id: {self.__id}, "

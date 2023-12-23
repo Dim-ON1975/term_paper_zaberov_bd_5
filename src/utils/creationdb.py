@@ -28,7 +28,7 @@ class CreationDB:
             finally:
                 conn.close()
         except (Exception, psycopg2.DatabaseError) as error:
-            logger.error(error)
+            logger.error(f'Создание базы данных из скрипта .sql ({self.__class__.__name__}): {error}')
             exit(1)
 
     def create_tables(self, path_dbcreatetables: str) -> None:
@@ -58,7 +58,7 @@ class CreationDB:
             finally:
                 conn.close()
         except (Exception, psycopg2.DatabaseError) as error:
-            logger.error(error)
+            logger.error(f'Считывание и запуск sql скрипта из файла .sql ({self.__class__.__name__}): {error}')
             exit(1)
 
     @staticmethod

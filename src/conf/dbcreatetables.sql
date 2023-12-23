@@ -1,36 +1,21 @@
--- Таблица "Регионы и города федерального значения (Москва, Санкт-Петербург)"
-CREATE TABLE IF NOT EXISTS regions
+-- Таблица "Регионы, города/населённые пункты"
+CREATE TABLE IF NOT EXISTS areas
 (
-    region_id integer NOT NULL,
-    region_name varchar(100) NOT NULL,
+    area_id integer NOT NULL,
+    area_name varchar(100) NOT NULL,
 
-    CONSTRAINT pk_regions_region_id PRIMARY KEY (region_id)
-);
-
--- Таблица "Города/населённые пункты"
-CREATE TABLE IF NOT EXISTS cities
-(
-    city_id integer NOT NULL,
-    region_id integer NOT NULL,
-    city_name varchar(100) NOT NULL,
-
-    CONSTRAINT pk_cities_cities_id PRIMARY KEY (city_id),
-    CONSTRAINT fk_cities_region_id FOREIGN KEY (region_id) REFERENCES regions(region_id)
-
+    CONSTRAINT pk_areas_area_id PRIMARY KEY (area_id)
 );
 
 -- Таблица "Работодатели"
 CREATE TABLE IF NOT EXISTS employers
 (
     employer_id serial NOT NULL,
-    region_id integer NOT NULL,
-    city_id integer NOT NULL,
+    area_id integer NOT NULL,
     employer_name varchar(200) NOT NULL,
-    employer_address varchar(300) DEFAULT NULL,
 
     CONSTRAINT pk_employers_employer_id PRIMARY KEY (employer_id),
-    CONSTRAINT fk_employers_region_id FOREIGN KEY (region_id) REFERENCES regions(region_id),
-    CONSTRAINT fk_employers_city_id FOREIGN KEY (city_id) REFERENCES cities(city_id)
+    CONSTRAINT fk_employers_area_id FOREIGN KEY (area_id) REFERENCES areas(area_id)
 );
 
 
@@ -85,6 +70,7 @@ CREATE TABLE IF NOT EXISTS vacancies
     experience_id integer NOT NULL,
     applicant_requirements text DEFAULT NULL,
     duties text DEFAULT NULL,
+    employer_address varchar(300) DEFAULT NULL,
     url varchar(200),
 
     CONSTRAINT pk_vacancies_vacancy_id PRIMARY KEY (vacancy_id),
@@ -93,4 +79,14 @@ CREATE TABLE IF NOT EXISTS vacancies
     CONSTRAINT fk_vacancies_schedule_id FOREIGN KEY (schedule_id) REFERENCES schedule(schedule_id),
     CONSTRAINT fk_vacancies_employment_id FOREIGN KEY (employment_id) REFERENCES employment(employment_id),
     CONSTRAINT fk_vacancies_experience_id FOREIGN KEY (experience_id) REFERENCES experience(experience_id)
+);
+
+-- Таблица "История"
+CREATE TABLE IF NOT EXISTS history
+(
+    history_id serial NOT NULL,
+    history_datetime TIMESTAMP NOT NULL,
+    history_area varchar(100) NOT NULL,
+
+    CONSTRAINT pk_history_history_id PRIMARY KEY (history_id)
 );
